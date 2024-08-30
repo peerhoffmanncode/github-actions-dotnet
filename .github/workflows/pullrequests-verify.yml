@@ -17,11 +17,16 @@ jobs:
         with:
           dotnet-version: 8.0
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Verify code formatting with dotnet
+        run: dotnet format -v detailed --verify-no-changes
 
       - name: Test with dotnet
         run: dotnet test --configuration Release --no-build
 
-      - name: Verify code formatting with dotnet
-        run: dotnet format -v detailed --verify-no-changes
+      - name: Publish .NET Core application
+        run: dotnet publish -c Release -o ./artifacts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-app
+          path: ./artifacts
