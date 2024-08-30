@@ -21,7 +21,7 @@ jobs:
         run: dotnet format -v detailed --verify-no-changes
 
       - name: Test with dotnet
-        run: dotnet test --configuration Release --no-build
+        run: dotnet test --configuration Release
 
       - name: Publish .NET Core application
         run: dotnet publish -c Release -o ./artifacts
