@@ -1,14 +1,12 @@
-name: Pull Request verify & test
+name: CI and upload artifact
 
 on:
   pull_request:
     branches: [ "main" ]
 
-  workflow_dispatch:
-
 jobs:
   build:
-    name: PR verify & test
+    name: CI and upload artifact
     runs-on: windows-latest
 
     steps:
@@ -22,8 +20,13 @@ jobs:
       - name: Verify code formatting with dotnet
         run: dotnet format -v detailed --verify-no-changes
 
-      - name: Build .NET Core application
-        run: dotnet build -c Release
-
       - name: Test with dotnet
-        run: dotnet test --configuration Release --no-build
+        run: dotnet test --configuration Release
+
+      - name: Publish .NET Core application
+        run: dotnet publish -c Release -o ./artifacts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-app
+          path: ./artifacts
