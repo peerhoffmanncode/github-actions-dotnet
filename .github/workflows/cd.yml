@@ -1,0 +1,60 @@
+name: CI & CD ASP.NET Core app to Azure Web App
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  APPLICATION_NAME: your-app-name    # set this to your application's name
+  DOTNET_VERSION: '8.0.x'             # set this to the dot net version to use
+  ARTIFACT_DESTINATION_FOLDER: "./artifacts"
+
+jobs:
+  build:
+    name: CI and upload artifact
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify code formatting with dotnet
+        run: dotnet format -v detailed --verify-no-changes
+
+      - name: Test with dotnet
+        run: dotnet test --configuration Release
+
+      - name: Create artifacts directory
+        run: mkdir -p ./artifacts
+
+      - name: Publish .NET Core application as self-contained and a single file
+        run: dotnet publish ./src/GitHubActionsDotNet.Api/GitHubActionsDotNet.Api.csproj -c Release -o ${{ env.ARTIFACT_DESTINATION_FOLDER }} --self-contained --runtime win-x64 /p:PublishSingleFile=true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APPLICATION_NAME }}
+          path: ${{ env.ARTIFACT_DESTINATION_FOLDER }}
+
+  deploy_to_dev:
+    name: Deploy to development
+    runs-on: windows-latest
+    needs: build
+    environment: dev
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ env.APPLICATION_NAME }}
+          path: ${{ env.ARTIFACT_DESTINATION_FOLDER }}
+
+      # Deploy to Azure Web apps
+      - name: 'Deploy to Azure webapp'
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.APPLICATION_NAME }}
+          package: ${{ env.ARTIFACT_DESTINATION_FOLDER }}
