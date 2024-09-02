@@ -25,9 +25,9 @@ jobs:
 
       - name: Create artifacts directory
         run: mkdir -p ./artifacts
-        
+
       - name: Publish .NET Core application
-        run: dotnet publish -c Release -o ./artifacts
+        run: dotnet publish GitHubActionsDotNet.Api/GitHubActionsDotNet.Api.csproj -c Release -o ./artifacts
 
       - uses: actions/upload-artifact@v4
         with:
